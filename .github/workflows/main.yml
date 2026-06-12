@@ -59,9 +59,9 @@ jobs:
           find . -maxdepth 3 -type f \( -name "*.zip" -o -name "*.tar.gz" -o -name "*.tgz" \) | while read -r archive; do
             echo "Extracting nested archive: $archive"
             if [[ "$archive" == *.zip ]]; then
-              unzip -q "$archive" && rm "$archive"
+              tar -xvf "$archive" && rm "$archive"
             else
-              tar -xf "$archive" && rm "$archive"
+              tar -xvf "$archive" && rm "$archive"
             fi
           done
           mv Mindustry Mindustry.x86_64 || true
