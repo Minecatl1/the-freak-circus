@@ -71,13 +71,15 @@ jobs:
           TARGET_BINARY=""
           cd ..
           # Priority 1: Check standard Linux file extensions or common game engines (Godot/Unity/Love2D)
-          FOUND_FILE=$(find ./"$REPO_NAME" -type f \( -name "*.x86_64" -o -name "*.x86" -o -name "*.bin" -o -name "*.appimage" -o -name "linux-wrapper" \) -print -quit)
+          FOUND_FILE=$(find ./"$REPO_NAME" -type f \( -name "*.x86_64" -o -name "*.x86" -o -name "*.bin" -o -name "*.appimage" -o -name "linux-wrapper" -o -name "*.py" \) -print -quit)
           
           # Priority 2: Fallback to inspecting file headers via 'file' utility for native Linux ELF binaries
           if [ -z "$FOUND_FILE" ]; then
             echo "No explicit extensions found. Inspecting binary markers..."
             FOUND_FILE=$(find ./"$REPO_NAME" -type f -not -name "*.*" -executable -exec sh -c 'file -b "$1" | grep -q "ELF"' _ {} \; -print -quit)
           fi
+
+
           
           # Isolate relative path inside the directory
           if [ -n "$FOUND_FILE" ]; then
@@ -97,9 +99,17 @@ jobs:
           echo 'cd "$(dirname "$0")"' >> "$LAUNCH_PATH"
           echo '' >> "$LAUNCH_PATH"
           echo "echo \"Launching ${REPO_NAME}...\"" >> "$LAUNCH_PATH"
+
+          if [[ "$FOUND_FILE" == *.py ]]; then
+            echo "python3 \"./$TARGET_BINARY\" \"\$@\"" >> "$LAUNCH_PATH"
+          else
+            echo "\"./$TARGET_BINARY\" \"\$@\"" >> "$LAUNCH_PATH"
+            # Add your actions here
+          fi
           
-          # Point the shell directly to the discovered relative binary location
-          echo "./\"$TARGET_BINARY\" \"\$@\"" >> "$LAUNCH_PATH"
+
+          # It's not Python: write the normal execution string
+
           
           # 9. Set permissions across the directory bundle
           chmod +x "$LAUNCH_PATH"
